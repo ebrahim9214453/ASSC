@@ -1,0 +1,21 @@
+from sklearn.utils import class_weight
+
+
+def FocalLoss_weighted(targets, inputs, gamma=2): 
+    #class_weights = class_weight.compute_class_weight('balanced',
+     #                                            np.unique(inputs[0,:,0]),
+      #                                           inputs[0,:,0])
+    alpha = tf.constant([[.1],[.6],[.1],[.3],[.3]], dtype=tf.float32)
+    #alpha = tf.constant([class_weights], dtype=tf.float32)
+    #alpha=tf.constant([.1,.3,.1,.25,.25], dtype=tf.float32)
+    #targets = K.cast(targets, 'float32')
+    BCE = K.sparse_categorical_crossentropy(targets, inputs)
+    BCE_EXP = K.exp(-BCE)
+    focal_loss = K.mean(tf.matmul(alpha , K.pow((1-BCE_EXP), gamma) * BCE))
+    return focal_loss
+def focal_loss(target, output, gamma=2):
+    output /= K.sum(output, axis=-1, keepdims=True)
+    eps = K.epsilon()
+    output = K.clip(output, eps, 1. - eps)
+    return -K.sum(K.pow(1. - output, gamma) * target * K.log(output),
+                          axis=-1)    
